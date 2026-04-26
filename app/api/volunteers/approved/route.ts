@@ -6,10 +6,12 @@ export async function GET() {
   try {
     await connectDB();
     const volunteers = await User.find({
-      role: "volunteer",
-      volunteerStatus: "approved",
-      
-    }).sort({ createdAt: -1 });
+  role: "volunteer",
+  volunteerStatus: "approved",
+})
+  .sort({ createdAt: -1 })
+  .select("name email phone role qualifications address serviceArea volunteerStatus createdAt")
+  .lean();
     return NextResponse.json(
       volunteers.map((u) => ({
         id: u._id.toString(),

@@ -6,64 +6,58 @@ import {
   Shield,
   Users,
   TrendingUp,
-  ArrowRight,
-  Link2,
   MapPin,
   Star,
   Phone,
   Mail,
-  Clock,
+  CheckCircle,
+  ArrowRight,
+  Menu,
+  X,
+  UserPlus,
+  HandHeart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AuthModal, type AuthMode } from "@/components/auth-modal"
 import { store } from "@/lib/store"
+import { toast } from "sonner"
 
-
-// Animated Counter
-function AnimatedCounter({ value, prefix = "৳", suffix = "", duration = 2500 }: { value: number; prefix?: string; suffix?: string; duration?: number }) {
+function AnimatedCounter({
+  value,
+  prefix = "",
+  suffix = "",
+  duration = 2500,
+}: {
+  value: number
+  prefix?: string
+  suffix?: string
+  duration?: number
+}) {
   const [displayValue, setDisplayValue] = useState(0)
   const rafRef = useRef<number>(0)
-
   useEffect(() => {
-    let start = 0
     const startTime = performance.now()
-
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime
       const progress = Math.min(elapsed / duration, 1)
-      const ease = 1 - Math.pow(1 - progress, 3) // easeOutCubic
-      setDisplayValue(Math.floor(ease * value + start))
-      if (progress < 1) requestAnimationFrame(animate)
+      const ease = 1 - Math.pow(1 - progress, 3)
+      setDisplayValue(Math.floor(ease * value))
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate)
     }
-
     rafRef.current = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(rafRef.current)
   }, [value, duration])
-
-  return <span>{prefix}{displayValue.toLocaleString()}{suffix}</span>
-}
-
-// Floating Orb
-function FloatingOrb({ delay = 0, color = "from-blue-500 to-purple-500", className = "" }: { delay?: number; color?: string; className?: string }) {
   return (
-    <div 
-      className={`absolute rounded-full blur-xl opacity-20 animate-float ${color} ${className}`}
-      style={{ animationDelay: `${delay}s` }}
-    />
-  )
-}
-
-// Glass Card
-function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <Card className={`backdrop-blur-xl bg-white/20 border-white/30 shadow-2xl ${className}`}>
-      {children}
-    </Card>
+    <span>
+      {prefix}
+      {displayValue.toLocaleString()}
+      {suffix}
+    </span>
   )
 }
 
@@ -76,6 +70,9 @@ export function LandingPage() {
     totalVolunteers: 0,
     totalTasks: 0,
   })
+  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" })
+  const [contactLoading, setContactLoading] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     async function fetchStats() {
@@ -83,13 +80,12 @@ export function LandingPage() {
         const data = await store.getStats()
         setStats({
           totalMonetary: data.totalMonetary || 0,
-          totalDonors: data.totalDonors || 156,
-          totalVolunteers: data.totalVolunteers || 42,
-          totalTasks: data.totalTasks || 89,
+          totalDonors: data.totalDonors || 0,
+          totalVolunteers: data.totalVolunteers || 0,
+          totalTasks: data.totalTasks || 0,
         })
       } catch {
-        // Fallback
-        setStats({ totalMonetary: 125000, totalDonors: 156, totalVolunteers: 42, totalTasks: 89 })
+        setStats({ totalMonetary: 0, totalDonors: 0, totalVolunteers: 0, totalTasks: 0 })
       }
     }
     fetchStats()
@@ -97,333 +93,467 @@ export function LandingPage() {
     return () => clearInterval(id)
   }, [])
 
-  const testimonials = [
-    {
-      name: "Rahim Khan",
-      role: "Donor",
-      quote: "Finally a platform where I can see exactly where my donations go. The blockchain transparency gives me confidence.",
-      rating: 5,
-    },
-    {
-      name: "Fatema Begum",
-      role: "Volunteer",
-      quote: "Love the task management and real-time tracking. Very organized and donors get proof of delivery.",
-      rating: 5,
-    },
-    {
-      name: "Admin Team",
-      role: "Platform Admin",
-      quote: "Perfect balance of features for managing volunteers, donations, and analytics. Highly recommend.",
-      rating: 5,
-    },
-  ]
-
   function openAuth(mode: AuthMode) {
     setAuthMode(mode)
     setAuthOpen(true)
+    setMobileMenuOpen(false)
   }
 
-  return (
-    <div className="min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Animated Background Orbs */}
-      <FloatingOrb delay={0} color="from-indigo-400/20 via-blue-400/20 to-purple-400/20" />
-      <FloatingOrb delay={1} color="from-emerald-400/20 via-teal-400/20 to-cyan-400/20" className="top-20 right-20" />
-      <FloatingOrb delay={2} color="from-rose-400/20 via-pink-400/20 to-orange-400/20" className="bottom-20 left-20" />
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+    setMobileMenuOpen(false)
+  }
 
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-white/50 supports-[backdrop-filter]:bg-white/60">
-        <div className="mx-auto max-w-7xl px-6 py-4">
+  async function handleContact(e: React.FormEvent) {
+    e.preventDefault()
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      toast.error("Please fill in all fields")
+      return
+    }
+    setContactLoading(true)
+    try {
+      const result = await store.sendContactMessage(
+        contactForm.name,
+        contactForm.email,
+        contactForm.message
+      )
+      if (result.success) {
+        toast.success("Message sent successfully! We'll respond within 24 hours.")
+        setContactForm({ name: "", email: "", message: "" })
+      } else {
+        toast.error(result.error || "Failed to send message")
+      }
+    } catch {
+      toast.error("Failed to send message")
+    } finally {
+      setContactLoading(false)
+    }
+  }
+
+  const testimonials = [
+    {
+      name: "Rahim Ahmed",
+      role: "Donor",
+      quote: "As a donor, I finally feel confident where my money goes. The blockchain transparency is incredible.",
+      rating: 5,
+      initial: "R",
+    },
+    {
+      name: "Nusrat Jahan",
+      role: "Volunteer",
+      quote: "The platform helped me find real opportunities to contribute. The task system is very organized.",
+      rating: 5,
+      initial: "N",
+    },
+    {
+      name: "Karim Hossain",
+      role: "Donor",
+      quote: "I can see exactly where every taka goes. This level of transparency is what charity platforms should offer.",
+      rating: 5,
+      initial: "K",
+    },
+  ]
+
+  const navLinks = [
+  { label: "About", id: "about" },
+  { label: "How It Works", id: "how-it-works" },
+  { label: "Contact", id: "contact" },
+]
+
+  return (
+    <div className="min-h-screen bg-background">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-green-600 focus:text-white focus:rounded-md focus:text-sm focus:font-medium"
+      >
+        Skip to main content
+      </a>
+
+      {/* NAVBAR */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-12 w-12 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 p-1 shadow-xl">
-                <div className="flex h-full w-full items-center justify-center rounded-xl bg-white">
-                  <Link2 className="h-6 w-6 text-indigo-600" />
-                </div>
+              <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                <Heart className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  DonateChain
-                </h1>
-                <p className="text-xs text-muted-foreground">Transparent Giving</p>
+                <span className="text-xl font-bold text-foreground">HopeBridge</span>
+                <p className="text-xs text-muted-foreground hidden sm:block">Transparent Giving Platform</p>
               </div>
             </div>
+
+            <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
+              {navLinks.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => scrollTo(link.id)}
+                  className="text-sm font-medium text-muted-foreground hover:text-green-600 transition-colors"
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
+
             <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-sm font-medium bg-white/50 hover:bg-white/80"
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700"
                 onClick={() => openAuth("select-role")}
               >
                 Sign In
               </Button>
-              <Button 
-                size="sm" 
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
-                onClick={() => openAuth("register-donor")}
+              <button
+                className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
               >
-                Donate Now <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </div>
+
+          {mobileMenuOpen && (
+            <nav className="md:hidden pt-4 pb-2 border-t border-border mt-4 flex flex-col gap-1" aria-label="Mobile navigation">
+              {navLinks.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => scrollTo(link.id)}
+                  className="text-sm font-medium text-muted-foreground hover:text-green-600 hover:bg-green-50 transition-colors text-left px-3 py-2.5 rounded-md"
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 py-20 overflow-hidden">
-        <div className="mx-auto max-w-7xl text-center">
-          <Badge className="inline-flex px-4 py-2 mb-8 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 border-emerald-200 font-semibold shadow-lg">
-            <Shield className="w-4 h-4 mr-1" />
-            100% Transparent • Blockchain Verified
-          </Badge>
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent mb-6 leading-tight">
-            Transform Lives
-            <br />
-            <span className="text-transparent bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text">One Donation</span>
-            <br />
-            At A Time
-          </h1>
-          <p className="mx-auto mb-12 max-w-3xl text-xl md:text-2xl text-gray-600 leading-relaxed">
-            Connect donors with communities through secure blockchain donations and verified volunteers. 
-            Track every Taka from your wallet to real impact.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
-            <Button 
-              size="lg" 
-              className="text-lg px-10 py-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300 font-semibold group"
-              onClick={() => openAuth("register-donor")}
-            >
-              Start Donating <span className="group-hover:translate-x-1 transition-transform ml-2">→</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="text-lg px-10 py-6 border-white/50 bg-white/30 backdrop-blur-sm hover:bg-white/50 hover:border-white/70 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 font-semibold"
-              onClick={() => openAuth("register-volunteer")}
-            >
-              Join as Volunteer
-            </Button>
-          </div>
+      <main id="main-content">
 
-          {/* Hero Mockup */}
-          <div className="relative mx-auto max-w-4xl">
-            <div className="relative mx-auto h-96 w-96 lg:h-[500px] lg:w-[350px] bg-gradient-to-br from-slate-200 to-slate-300 rounded-3xl p-6 shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-3xl blur-xl -inset-2 animate-pulse" />
-              <div className="relative h-full w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-                <div className="h-20 bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <div className="text-white font-bold text-lg">DonateChain Dashboard</div>
+        {/* HERO */}
+        <section className="py-24 lg:py-32 px-4 sm:px-6 bg-background">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div>
+                <Badge className="mb-6 bg-green-100 text-green-700 border-green-200 px-4 py-1.5">
+                  <Shield className="w-3.5 h-3.5 mr-1.5" />
+                  Blockchain Verified Donations
+                </Badge>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight mb-5">
+                  One Donation Can
+                  <span className="text-green-600 block">Transform a Life</span>
+                  Forever
+                </h1>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-7">
+                  A transparent, blockchain-powered platform ensuring every contribution reaches those who need it most.
+                  Track every Taka from your wallet to real impact.
+                </p>
+
+                {/* Hero: Volunteer Registration button only */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-7">
+  
+</div>
+
+                <div className="flex flex-wrap gap-5 text-sm text-muted-foreground">
+                  {["100% transparent", "Real-time tracking", "Verified volunteers"].map((item) => (
+                    <span key={item} className="flex items-center gap-1.5">
+                      <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                      {item}
+                    </span>
+                  ))}
                 </div>
-                <div className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-emerald-100 p-3 rounded-xl">
-                      <p className="text-xs text-emerald-800 font-medium">Total Impact</p>
-                      <p className="text-2xl font-bold text-emerald-600">৳15,420</p>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-xl">
-                      <p className="text-xs text-blue-800 font-medium">Tasks Completed</p>
-                      <p className="text-2xl font-bold text-blue-600">23</p>
-                    </div>
+              </div>
+
+              {/* Donation Card Mockup */}
+              <div className="flex justify-center lg:justify-end">
+                <div className="w-full max-w-sm md:max-w-md bg-background rounded-2xl shadow-2xl border border-border overflow-hidden">
+                  <div className="bg-green-600 px-6 py-4">
+                    <p className="text-green-100 text-xs font-medium uppercase tracking-wide">Example Campaign</p>
+                    <h3 className="text-white font-bold text-xl mt-1">Food Drive Campaign</h3>
+                    <Badge className="mt-2 bg-white/20 text-white border-0 text-xs">
+                      <CheckCircle className="w-3 h-3 mr-1" /> Verified Campaign
+                    </Badge>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl">
-                      <div>
-                        <p className="text-xs text-gray-500">Latest Donation</p>
-                        <p className="font-semibold text-gray-900">Food for 50 families</p>
+                  <div className="p-6 space-y-5">
+                    <div>
+                      <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                        <span>Progress</span>
+                        <span className="font-semibold text-green-600">70%</span>
                       </div>
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                      <div className="w-full bg-gray-100 rounded-full h-3">
+                        <div
+                          className="bg-green-600 h-3 rounded-full"
+                          style={{ width: "70%" }}
+                          role="progressbar"
+                          aria-valuenow={70}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label="Campaign progress 70%"
+                        />
+                      </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 rounded-xl p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Raised</p>
+                        <p className="font-bold text-foreground text-lg">৳70,000</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-3 text-center">
+                        <p className="text-xs text-muted-foreground">Goal</p>
+                        <p className="font-bold text-foreground text-lg">৳1,00,000</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center">
+                      Raised by <span className="font-semibold text-foreground">124 donors</span>
+                    </p>
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                      onClick={() => openAuth("register-donor")}
+                    >
+                      Donate Now
+                    </Button>
                   </div>
-                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
-                    New Donation
-                  </Button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Live Stats */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { value: stats.totalMonetary, label: "Total Donations", icon: Heart, color: "emerald" },
-              { value: stats.totalDonors, label: "Happy Donors", icon: Users, color: "blue" },
-              { value: stats.totalVolunteers, label: "Active Volunteers", icon: Shield, color: "purple" },
-              { value: stats.totalTasks, label: "Completed Tasks", icon: TrendingUp, color: "indigo" },
-            ].map((stat, i) => (
-              <GlassCard key={stat.label} className="group hover:scale-105 transition-all duration-500 p-8 text-center">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-${stat.color}-400 to-${stat.color}-500 flex items-center justify-center shadow-lg group-hover:shadow-2xl transition-all`}>
-                  <stat.icon className="w-8 h-8 text-white drop-shadow-lg" />
-                </div>
-                <h3 className="text-4xl lg:text-5xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-                  <AnimatedCounter value={stat.value} prefix={stat.label.includes('Total Donations') ? '৳' : ''} />
-                </h3>
-                <p className="text-gray-600 font-medium">{stat.label}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-24 bg-white/50">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="text-center mb-20">
-            <Badge className="inline-flex px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 border-indigo-200">
-              Everything You Need
-            </Badge>
-            <h2 className="mt-6 text-5xl lg:text-6xl font-black bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent">
-              Complete Donation Platform
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-xl text-gray-600">
-              From secure payments to volunteer coordination to impact tracking - we handle it all
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { icon: Shield, title: "Blockchain Security", desc: "Every Taka recorded permanently with cryptographic proof", color: "indigo" },
-              { icon: TrendingUp, title: "Real-time Tracking", desc: "Live volunteer location + GPS proof delivery", color: "emerald" },
-              { icon: Heart, title: "Smart Matching", desc: "AI-powered donor-volunteer assignment by location", color: "rose" },
-              { icon: Star, title: "Feedback System", desc: "Rate volunteers + get verified delivery receipts", color: "amber" },
-              { icon: Users, title: "Leaderboards", desc: "Compete for top donor status + badges", color: "blue" },
-              { icon: Clock, title: "24/7 Support", desc: "Dedicated admin team + instant chat support", color: "purple" },
-            ].map((feature, i) => (
-              <GlassCard key={i} className="group hover:scale-[1.02] p-8 cursor-pointer transition-all duration-500 hover:shadow-2xl border-white/50">
-                <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-${feature.color}-400 to-${feature.color}-500 shadow-xl group-hover:shadow-2xl group-hover:rotate-3 transition-all duration-500 flex items-center justify-center`}>
-                  <feature.icon className="w-10 h-10 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-gradient-to-b from-indigo-50 to-white">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              What People Are Saying
-            </h2>
-          </div>
-      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {testimonials.map((testimonial, i) => (
-          <GlassCard key={i} className="p-10 text-center hover:scale-105 transition-all">
-            <div className="flex items-center justify-center mb-6">
-              {[...Array(testimonial.rating)].map((_, j) => (
-                <Star key={j} className="w-6 h-6 text-amber-400 fill-amber-400" />
+        {/* STATS */}
+        <section className="py-16 px-4 sm:px-6 bg-gray-50">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-black text-foreground">Our Impact So Far</h2>
+              <p className="text-muted-foreground mt-2 text-lg">Real numbers from real people making a difference</p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {[
+                { value: stats.totalMonetary, label: "Total Donated", icon: Heart, prefix: "৳" },
+                { value: stats.totalDonors, label: "Total Donors", icon: Users, prefix: "" },
+                { value: stats.totalVolunteers, label: "Active Volunteers", icon: Shield, prefix: "" },
+                { value: stats.totalTasks, label: "Tasks Completed", icon: TrendingUp, prefix: "" },
+              ].map((stat) => (
+                <Card key={stat.label} className="border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-100 flex items-center justify-center">
+                      <stat.icon className="w-6 h-6 text-green-600" />
+                    </div>
+                    <p className="text-3xl font-black text-foreground">
+                      <AnimatedCounter value={stat.value} prefix={stat.prefix} />
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1 font-medium">{stat.label}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-            <blockquote className="text-xl italic text-gray-700 mb-6">
-              "{testimonial.quote}"
-            </blockquote>
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">{testimonial.name.charAt(0)}</span>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                <p className="text-sm text-gray-500">{testimonial.role}</p>
-              </div>
-            </div>
-          </GlassCard>
-        ))}
-      </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600">
-        <div className="mx-auto max-w-4xl px-6 text-center text-white">
-          <h2 className="text-5xl font-black mb-6">
-            Ready to Make an Impact?
-          </h2>
-          <p className="text-xl mb-12 opacity-90">
-            Join thousands of donors transforming communities
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button 
-              size="lg" 
-              className="text-lg px-12 py-8 bg-white text-indigo-600 hover:bg-gray-100 font-bold shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-500"
-              onClick={() => openAuth("register-donor")}
-            >
-              Donate Now <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="text-lg px-12 py-8 border-white/50 bg-white/20 backdrop-blur-sm hover:bg-white/40 font-bold"
-              onClick={() => openAuth("register-volunteer")}
-            >
-              Volunteer Today
-            </Button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 to-slate-900 py-12">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid md:grid-cols-3 gap-8 text-white">
+        {/* HOW IT WORKS */}
+        <section id="how-it-works" className="py-20 px-4 sm:px-6 bg-background">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-black text-foreground">How It Works</h2>
+              <p className="text-muted-foreground mt-3 text-lg">Get started in just 3 simple steps</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                { step: "01", title: "Register", desc: "Sign up as a donor in seconds. Create your profile and get verified.", icon: Users },
+                { step: "02", title: "Donate", desc: "Choose monetary or physical donations. Every transaction is blockchain-secured.", icon: Heart },
+                { step: "03", title: "Track Impact", desc: "Monitor how your donation makes a difference in real-time with live tracking.", icon: TrendingUp },
+              ].map((item, i) => (
+                <Card key={i} className="border border-border shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden">
+                  <CardContent className="relative p-8 flex flex-col items-center text-center">
+                    <span className="absolute top-4 right-5 text-7xl font-black text-gray-100 select-none pointer-events-none z-0" aria-hidden="true">
+                      {item.step}
+                    </span>
+                    <div className="relative z-10 w-16 h-16 rounded-2xl bg-green-600 flex items-center justify-center mb-6 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                      <item.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="relative z-10 text-xl font-bold text-foreground mb-3">{item.title}</h3>
+                    <p className="relative z-10 text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURES */}
+        <section id="about" className="py-20 px-4 sm:px-6 bg-gray-50">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-black text-foreground">Why Choose HopeBridge?</h2>
+              <p className="text-muted-foreground mt-3 text-lg">Built for trust, transparency, and real impact</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                { icon: Shield, title: "Blockchain Transparency", desc: "Every transaction is securely recorded, ensuring full visibility and zero misuse of funds." },
+                { icon: MapPin, title: "Smart Volunteer Matching", desc: "Our system connects verified volunteers to tasks based on location and skill for fast delivery." },
+                { icon: TrendingUp, title: "Real-time Tracking", desc: "Instantly track donations, task progress, and real-world impact with live updates." },
+              ].map((feature, i) => (
+                <Card key={i} className="border border-border shadow-sm hover:shadow-lg transition-all duration-300 group">
+                  <CardContent className="p-8">
+                    <div className="w-14 h-14 rounded-2xl bg-green-100 group-hover:bg-green-600 flex items-center justify-center mb-6 transition-colors duration-300">
+                      <feature.icon className="w-7 h-7 text-green-600 group-hover:text-white transition-colors duration-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-3">{feature.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS */}
+        <section className="py-20 px-4 sm:px-6 bg-background">
+          <div className="mx-auto max-w-6xl">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-black text-foreground">Trusted by Our Community</h2>
+              <p className="text-muted-foreground mt-3 text-lg">Real stories from real people</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {testimonials.map((t, i) => (
+                <Card key={i} className="border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-8">
+                    <div className="flex mb-4" aria-label={`${t.rating} out of 5 stars`}>
+                      {[...Array(t.rating)].map((_, j) => (
+                        <Star key={j} className="w-5 h-5 text-amber-400 fill-amber-400" aria-hidden="true" />
+                      ))}
+                    </div>
+                    <blockquote className="text-foreground text-base leading-relaxed mb-6 italic">
+                      &ldquo;{t.quote}&rdquo;
+                    </blockquote>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                        <span className="text-white font-bold">{t.initial}</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">{t.name}</p>
+                        <p className="text-sm text-muted-foreground">{t.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CONTACT */}
+        <section id="contact" className="py-20 px-4 sm:px-6 bg-gray-50">
+          <div className="mx-auto max-w-3xl">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-black text-foreground">Have Questions?</h2>
+              <p className="text-muted-foreground mt-3 text-lg">
+                We&apos;d love to hear from you. Our team typically responds within 24 hours.
+              </p>
+            </div>
+            <Card className="border border-border shadow-sm">
+              <CardContent className="p-8">
+                <form onSubmit={handleContact} className="space-y-6">
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-name" className="text-sm font-medium text-foreground">Your Name</Label>
+                      <Input
+                        id="contact-name"
+                        placeholder="Rahim Ahmed"
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        className="border-border focus:border-green-500 focus:ring-green-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-email" className="text-sm font-medium text-foreground">Email Address</Label>
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        placeholder="rahim@example.com"
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        className="border-border focus:border-green-500 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-message" className="text-sm font-medium text-foreground">Message</Label>
+                    <Textarea
+                      id="contact-message"
+                      placeholder="How can we help you?"
+                      rows={5}
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      className="border-border focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={contactLoading}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-6 text-base"
+                  >
+                    {contactLoading ? "Sending..." : "Send Message"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+       
+
+
+      </main>
+
+      {/* FOOTER */}
+      <footer className="bg-gray-900 py-14 px-4 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid md:grid-cols-3 gap-10 text-white mb-10">
             <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-10 w-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <Link2 className="w-6 h-6" />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                  <Heart className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold">DonateChain</h3>
+                <span className="text-xl font-bold">HopeBridge</span>
               </div>
-              <p className="text-gray-300 leading-relaxed">
-                Transparent blockchain donations connecting generous hearts with communities in need.
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Building trust in digital donations through transparency and blockchain technology.
               </p>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#about-section" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Impact</a></li>
-                <li><a href="#gallery-section" className="hover:text-white transition-colors">Gallery</a></li>
-                <li><a href="#contact-section" className="hover:text-white transition-colors">Contact</a></li>
+              <h4 className="font-semibold mb-4 text-gray-300">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                {navLinks.map((link) => (
+                  <li key={link.id}>
+                    <a
+                      href={`#${link.id}`}
+                      onClick={(e) => { e.preventDefault(); scrollTo(link.id) }}
+                      className="hover:text-green-400 transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Contact Info</h4>
-              <div className="space-y-3 text-sm text-gray-300">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4" />
-                  +880 1700-000000
-                </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4" />
-                  contact@donatechain.org
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4" />
-                  Dhaka, Bangladesh
-                </div>
+              <h4 className="font-semibold mb-4 text-gray-300">Contact Info</h4>
+              <div className="space-y-3 text-sm text-gray-400">
+                <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-green-500 shrink-0" /> +880 1405091911</div>
+                <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-green-500 shrink-0" />  bsse1504@iit.du.ac.bd</div>
+                <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-green-500 shrink-0" /> Dhaka, Bangladesh</div>
               </div>
             </div>
           </div>
-          <div className="border-t border-white/20 mt-12 pt-8 text-center text-sm text-gray-400">
-            © 2024 DonateChain. All rights reserved. | Transparent Giving Platform
+          <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
+            © {new Date().getFullYear()} HopeBridge. All rights reserved. | Transparent Giving Platform
           </div>
         </div>
       </footer>
 
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} mode={authMode} onModeChange={setAuthMode} />
-      
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   )
 }

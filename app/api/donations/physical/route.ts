@@ -8,9 +8,12 @@ import { getAreaCoordinates } from "@/lib/areaCoordinates";
 export async function GET() {
   try {
     await connectDB();
-    const donations = await PhysicalDonation.find().sort({ createdAt: -1 });
+    const donations = await PhysicalDonation.find()
+      .sort({ createdAt: -1 })
+      .select("donorId donorName type quantity condition foodType expiryDate location preferredDate timeSlot phone email photoUrl description specialInstructions status latitude longitude blockNumber txHash createdAt")
+      .lean();
     return NextResponse.json(
-      donations.map((d) => ({
+      donations.map((d: any) => ({
         id: d._id.toString(),
         donorId: d.donorId.toString(),
         donorName: d.donorName,
@@ -18,9 +21,9 @@ export async function GET() {
         quantity: d.quantity,
         condition: d.condition,
         foodType: d.foodType,
-        expiryDate: d.expiryDate ? d.expiryDate.toISOString() : null,
+        expiryDate: d.expiryDate ? new Date(d.expiryDate).toISOString() : null,
         location: d.location,
-        preferredDate: d.preferredDate ? d.preferredDate.toISOString() : null,
+        preferredDate: d.preferredDate ? new Date(d.preferredDate).toISOString() : null,
         timeSlot: d.timeSlot,
         phone: d.phone,
         email: d.email,
@@ -32,7 +35,7 @@ export async function GET() {
         longitude: d.longitude,
         blockNumber: d.blockNumber ?? null,
         txHash: d.txHash ?? null,
-        createdAt: d.createdAt.toISOString(),
+        createdAt: new Date(d.createdAt).toISOString(),
       }))
     );
   } catch (err: unknown) {
@@ -66,28 +69,30 @@ export async function POST(request: Request) {
     const latitude = areaCoords?.latitude || null;
     const longitude = areaCoords?.longitude || null;
 
-    const donation = await PhysicalDonation.create({
-      donorId,
-      donorName,
-      type,
-      quantity,
-      condition: condition || "",
-      foodType: foodType || "",
-      expiryDate: expiryDate || null,
-      location,
-      preferredDate: preferredDate || null,
-      timeSlot: timeSlot || "",
-      phone: phone || "",
-      email: email || "",
-      description,
-      photoUrl: photoUrl || "",
-      specialInstructions: specialInstructions || "",
-      status: "pending",
-      latitude,
-      longitude,
-    });
+    const [donation, admin] = await Promise.all([
+      PhysicalDonation.create({
+        donorId,
+        donorName,
+        type,
+        quantity,
+        condition: condition || "",
+        foodType: foodType || "",
+        expiryDate: expiryDate || null,
+        location,
+        preferredDate: preferredDate || null,
+        timeSlot: timeSlot || "",
+        phone: phone || "",
+        email: email || "",
+        description,
+        photoUrl: photoUrl || "",
+        specialInstructions: specialInstructions || "",
+        status: "pending",
+        latitude,
+        longitude,
+      }),
+      User.findOne({ role: "admin" }).select("_id").lean(),
+    ]);
 
-    const admin = await User.findOne({ role: "admin" });
     if (admin) {
       await Notification.create({
         userId: admin._id,

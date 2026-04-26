@@ -61,6 +61,10 @@ export function SSLCommerzPaymentForm({
       toast.error("Please fill in all required fields")
       return
     }
+    if (!/^\d{11}$/.test(phone)) {
+  toast.error("Phone number must be exactly 11 digits")
+  return
+}
 
     if (!userId || !userName || !userEmail) {
       toast.error("Please complete your profile before making a donation")
@@ -70,9 +74,9 @@ export function SSLCommerzPaymentForm({
     }
 
     const amountNum = Number.parseFloat(amount)
-    if (isNaN(amountNum) || amountNum < 10) {
-      toast.error("Minimum donation amount is ৳10")
-      return
+    if (isNaN(amountNum) || amountNum < 50 || amountNum > 10000) {
+     toast.error("Donation amount must be between ৳50 and ৳10,000")
+     return
     }
 
     setStep("processing")
@@ -214,23 +218,26 @@ export function SSLCommerzPaymentForm({
                   placeholder="Enter amount"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  min="10"
+                  min="50"
+                  max="10000"
                   step="1"
                   required
                 />
-                <p className="text-xs text-muted-foreground">Minimum: ৳10</p>
+                <p className="text-xs text-muted-foreground">Amount: ৳50 – ৳10,000</p>
               </div>
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="ssl-phone">Phone Number</Label>
+
                 <Input
-                  id="ssl-phone"
-                  type="tel"
-                  placeholder="+880-1XXX-XXXXXX"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
+  id="ssl-phone"
+  type="tel"
+  placeholder="01XXXXXXXXX"
+  value={phone}
+  maxLength={11}
+  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+  required
+/>
               </div>
 
               <Button type="submit" className="w-full" disabled={isProcessing}>

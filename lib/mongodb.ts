@@ -36,6 +36,11 @@ async function connectDB() {
     cached.promise = mongoose
       .connect(MONGODB_URI, {
         bufferCommands: false,
+        maxPoolSize: 10,
+        minPoolSize: 2,
+        socketTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+        serverSelectionTimeoutMS: 10000,
       })
       .then((m) => m);
   }

@@ -61,8 +61,8 @@ export interface PhysicalDonation {
   description: string
   specialInstructions: string
   rejectReason: string
-blockNumber: string | null
-txHash: string | null
+  blockNumber?: string | null
+txHash?: string | null
   status: DonationStatus
   createdAt: string
 }

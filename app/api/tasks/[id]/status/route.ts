@@ -6,7 +6,6 @@ import Notification from "@/server/models/Notification";
 import PhysicalDonation from "@/server/models/PhysicalDonation";
 import { notifyDeliveryCompleted } from "@/lib/email-service";
 
-
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -20,59 +19,54 @@ export async function PUT(
     if (proofPhotoUrl) updates.proofPhotoUrl = proofPhotoUrl;
     if (pickupPhotoUrl) updates.pickupPhotoUrl = pickupPhotoUrl;
     if (deliveryPhotoUrl) updates.deliveryPhotoUrl = deliveryPhotoUrl;
+    if (status === "in-progress") updates.startedAt = new Date();
+    if (status === "completed") updates.completedAt = new Date();
 
-    if (status === "in-progress") {
-      updates.startedAt = new Date();
-    }
-
-    if (status === "completed") {
-      updates.completedAt = new Date();
-    }
-
-    const task = await Task.findByIdAndUpdate(id, updates, { new: true });
+    const task = await Task.findByIdAndUpdate(id, updates, { new: true }).lean();
     if (!task)
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
     if (status === "completed") {
-      await User.findByIdAndUpdate(task.volunteerId, {
-        isAvailable: true,
-        activeTaskCount: 0,
-        currentTaskId: null,
-      });
-    }
+      // Run all completed operations in parallel
+      const [admin, donation] = await Promise.all([
+        User.findOne({ role: "admin" }).select("_id").lean(),
+        PhysicalDonation.findById(task.donationId).select("donorId status").lean(),
+        User.findByIdAndUpdate(task.volunteerId, {
+          isAvailable: true,
+          activeTaskCount: 0,
+          currentTaskId: null,
+        }),
+      ]);
 
-    if (status === "completed") {
-      const admin = await User.findOne({ role: "admin" });
+      const notificationPromises = [];
 
       if (admin) {
-        await Notification.create({
-          userId: admin._id,
-          message: `Task completed by ${task.volunteerName}: ${task.donationType}`,
+        notificationPromises.push(
+          Notification.create({
+            userId: admin._id,
+            message: `Task completed by ${task.volunteerName}: ${task.donationType}`,
+          })
+        );
+      }
+
+      if (donation) {
+        notificationPromises.push(
+          PhysicalDonation.findByIdAndUpdate(task.donationId, { status: "completed" }),
+          Notification.create({
+            userId: donation.donorId,
+            message: `Your donation (${task.donationType}) has been delivered by ${task.volunteerName}!`,
+          })
+        );
+
+        // Email async — non-blocking
+        User.findById(donation.donorId).select("email").lean().then((donor: any) => {
+          if (donor?.email) {
+            notifyDeliveryCompleted(donor.email, task.donorName, task.volunteerName, task.donationType).catch(console.error);
+          }
         });
       }
 
-     const donation = await PhysicalDonation.findById(task.donationId);
-if (donation) {
-  // Mark donation as completed so it won't be auto-assigned again
-  await PhysicalDonation.findByIdAndUpdate(task.donationId, {
-    status: "completed",
-  });
-
-  const donor = await User.findById(donation.donorId);
-  if (donor && donor.email) {
-    notifyDeliveryCompleted(donor.email, task.donorName, task.volunteerName, task.donationType).catch(console.error);
-  }
-
-  await Notification.create({
-    userId: donation.donorId,
-    message: `Your donation (${task.donationType}) has been delivered by ${task.volunteerName}!`,
-  });
-}
-
-
-
-
-           
+      await Promise.all(notificationPromises);
     }
 
     return NextResponse.json({

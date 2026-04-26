@@ -20,13 +20,13 @@ export function VolunteerOverview() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
-    store.getVolunteerTasks(user.id).then((t) => {
-      setTasks(t)
-      setLoading(false)
-    })
-  }, [user])
-
+  if (!user) return
+  setLoading(true)
+  store.getVolunteerTasks(user.id).then((t) => {
+    setTasks(t)
+    setLoading(false)
+  }).catch(() => setLoading(false))
+}, [user])
   if (!user) return null
 
   const pendingCount = tasks.filter((t) => t.status === "pending").length

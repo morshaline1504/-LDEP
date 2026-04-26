@@ -25,8 +25,8 @@ export async function GET(
         status: d.status,
         phone: d.phone,
         preferredDate: d.preferredDate ? d.preferredDate.toISOString() : null,
-        blockNumber: d.blockNumber ?? null,
-        txHash: d.txHash ?? null,
+        blockNumber: d.blockNumber || null,
+        txHash: d.txHash || null,
         rejectReason: d.rejectReason ?? "",
         createdAt: d.createdAt.toISOString(),
       }))

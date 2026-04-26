@@ -22,7 +22,6 @@ import {
   Link2,
   Menu,
   X,
-  Trash2,
 } from "lucide-react"
 import type { ReactNode } from "react"
 import type { Notification } from "@/lib/types"
@@ -197,32 +196,9 @@ export function DashboardShell({
                           </span>
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
-                          {!n.read && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 opacity-70 hover:opacity-100"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleMarkRead(n.id)
-                              }}
-                              title="Mark as read"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 opacity-70 hover:opacity-100 hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(n.id)
-                            }}
-                            title="Delete notification"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                         
+                         
+                          
                         </div>
                       </DropdownMenuItem>
                     ))

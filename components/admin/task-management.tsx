@@ -35,6 +35,10 @@ import {
 import { Plus, MapPin, Clock, Zap } from "lucide-react"
 import type { TaskStatus, Task as TaskType, PhysicalDonation, User } from "@/lib/types"
 
+
+let tasksCache: TaskType[] = []
+let lastFetch = 0
+const CACHE_TTL = 60000
 const statusColor: Record<TaskStatus, string> = {
   pending: "bg-accent text-accent-foreground",
   "in-progress": "bg-chart-3/20 text-foreground",
@@ -66,23 +70,40 @@ export function TaskManagement() {
   const [deadline, setDeadline] = useState("")
   const [loadingNearest, setLoadingNearest] = useState(false)
   const [autoAssign, setAutoAssign] = useState(true)
+  const [loading, setLoading] = useState(false)
 
-  const loadData = useCallback(async () => {
+const loadData = useCallback(async (forceRefresh = false) => {
+  const now = Date.now()
+  if (!forceRefresh && tasksCache.length > 0 && now - lastFetch < CACHE_TTL) {
+    setTasks(tasksCache)
+    setLoading(false)
+    return
+  }
+  setLoading(true)
+  try {
     const [t, pd, vols] = await Promise.all([
       store.getTasks(),
       store.getPhysicalDonations(),
       store.getApprovedVolunteers(),
     ])
+    tasksCache = t
+    lastFetch = Date.now()
     setTasks(t)
-
     const assignedDonationIds = new Set(t.map((task) => task.donationId))
     setApprovedDonations(pd.filter((d) => d.status === "approved" && !assignedDonationIds.has(d.id)))
-
     setApprovedVolunteers(vols)
-  }, [])
+  } finally {
+    setLoading(false)
+  }
+}, [])
+// Auto-refresh every 30 seconds without showing loading
+useEffect(() => {
+  const interval = setInterval(() => loadData(false), 30000)
+  return () => clearInterval(interval)
+}, [loadData])
 
   useEffect(() => {
-    loadData()
+    loadData(true)
   }, [loadData])
 
   // Load nearest volunteers when a donation is selected
@@ -144,7 +165,7 @@ const task = await store.createTask(selectedDonation, selectedVolunteer, deadlin
       setSelectedDonation("")
       setSelectedVolunteer("")
       setDeadline("")
-      loadData()
+      loadData(true)
     }
   }
 
@@ -335,11 +356,15 @@ const task = await store.createTask(selectedDonation, selectedVolunteer, deadlin
           <CardTitle className="text-lg">All Tasks</CardTitle>
         </CardHeader>
         <CardContent>
-          {tasks.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              No tasks created yet
-            </p>
-          ) : (
+          
+
+          {loading ? (
+  <p className="py-8 text-center text-muted-foreground">Loading tasks...</p>
+) : tasks.length === 0 ? (
+  <p className="py-8 text-center text-muted-foreground">
+    No tasks created yet
+  </p>
+) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

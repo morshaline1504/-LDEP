@@ -25,20 +25,20 @@ class Block {
       )
       .digest("hex");
   }
-
-  mineBlock(difficulty) {
-    const target = Array(difficulty + 1).join("0");
-    while (this.hash.substring(0, difficulty) !== target) {
-      this.nonce++;
-      this.hash = this.calculateHash();
-    }
+   mineBlock(difficulty) {
+  if (difficulty === 0) return;
+  const target = Array(difficulty + 1).join("0");
+  while (this.hash.substring(0, difficulty) !== target) {
+    this.nonce++;
+    this.hash = this.calculateHash();
   }
+}
 }
 
 class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
-    this.difficulty = 2;
+    this.difficulty = 0;
   }
 
   createGenesisBlock() {

@@ -347,11 +347,12 @@ const nextBlockNumber = (lastDonation?.blockNumber || 0) + 1;
 return NextResponse.redirect(
   new URL(`/payment/success?data=${encodedDonation}`, request.url)
 );
+  
   } catch (error) {
     console.error("Payment success handler error:", error);
-    return NextResponse.json(
-      { error: "Payment processing failed" },
-      { status: 500 }
+    return NextResponse.redirect(
+      new URL(`/payment/fail?message=Payment processing failed`, request.url)
     );
   }
+
 }

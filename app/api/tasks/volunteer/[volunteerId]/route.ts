@@ -9,9 +9,11 @@ export async function GET(
   try {
     await connectDB();
     const { volunteerId } = await params;
-    const tasks = await Task.find({ volunteerId }).sort({ createdAt: -1 });
+    const tasks = await Task.find({ volunteerId })
+      .sort({ createdAt: -1 })
+      .lean();
     return NextResponse.json(
-      tasks.map((t) => ({
+      tasks.map((t: any) => ({
         id: t._id.toString(),
         donationId: t.donationId.toString(),
         volunteerId: t.volunteerId.toString(),
@@ -19,7 +21,7 @@ export async function GET(
         donorName: t.donorName,
         donationType: t.donationType,
         location: t.location,
-        deadline: t.deadline.toISOString(),
+        deadline: new Date(t.deadline).toISOString(),
         status: t.status,
         proofPhotoUrl: t.proofPhotoUrl || "",
         pickupPhotoUrl: t.pickupPhotoUrl || "",
@@ -30,12 +32,12 @@ export async function GET(
         deliveryLongitude: t.deliveryLongitude || null,
         volunteerLatitude: t.volunteerLatitude || null,
         volunteerLongitude: t.volunteerLongitude || null,
-        assignedAt: t.assignedAt.toISOString(),
-        startedAt: t.startedAt ? t.startedAt.toISOString() : null,
-        completedAt: t.completedAt ? t.completedAt.toISOString() : null,
+        assignedAt: new Date(t.assignedAt).toISOString(),
+        startedAt: t.startedAt ? new Date(t.startedAt).toISOString() : null,
+        completedAt: t.completedAt ? new Date(t.completedAt).toISOString() : null,
         donorPhone: t.donorPhone || "",
-        distance: t.distance || null,
-        estimatedTime: t.estimatedTime || null,
+        distance: t.distance || "",
+        estimatedTime: t.estimatedTime || "",
       }))
     );
   } catch (err: unknown) {

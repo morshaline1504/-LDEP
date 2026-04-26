@@ -579,41 +579,9 @@ export const store = {
   },
 
   // Get volunteer stats (completion rate, avg delivery time, ratings)
-  async getVolunteerStats(volunteerId: string): Promise<{
-    volunteer: {
-      id: string
-      name: string
-      email: string
-      phone: string
-      qualifications: string
-      bio: string
-      profilePicture: string
-    }
-    stats: {
-      totalTasks: number
-      completedTasks: number
-      inProgressTasks: number
-      pendingTasks: number
-      completionRate: number
-      avgDeliveryTimeMinutes: number
-      avgResponseTimeMinutes: number
-      totalRatings: number
-      avgRating: number
-    }
-    recentFeedback: {
-      id: string
-      donorName: string
-      rating: number
-      comment: string
-      createdAt: string
-    }[]
-  } | null> {
-    try {
-      return await apiFetch(`/api/volunteers/${volunteerId}/stats`)
-    } catch {
-      return null
-    }
-  },
+  
+     
+    
 
   // Referral system
   async getReferralInfo(userId: string): Promise<{

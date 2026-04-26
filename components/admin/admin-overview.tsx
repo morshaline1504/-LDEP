@@ -21,8 +21,6 @@ import {
   Cell,
   BarChart,
   Bar,
-  AreaChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,6 +28,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts"
+
 
 interface Stats {
   totalDonors: number
@@ -352,38 +351,9 @@ export function AdminOverview() {
           </CardContent>
         </Card>
 
-        {/* 5. Monthly Active Users - Area Chart */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Monthly Active Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={donationTrends}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="donors"
-                    stroke="#FFBB28"
-                    fill="#FFBB28"
-                    fillOpacity={0.3}
-                    name="Active Donors"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        
+
+  
       </div>
     </div>
   )

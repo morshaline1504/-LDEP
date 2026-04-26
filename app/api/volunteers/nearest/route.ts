@@ -19,11 +19,12 @@ export async function POST(request: Request) {
     // Get all approved volunteers
     // Get all approved AND available volunteers only
     const allVolunteers = await User.find({
-      role: "volunteer",
-      volunteerStatus: "approved",
-      isAvailable: { $ne: false },
-      
-    }).select("name email phone qualifications serviceArea latitude longitude address isAvailable activeTaskCount");
+  role: "volunteer",
+  volunteerStatus: "approved",
+  isAvailable: { $ne: false },
+})
+  .select("name email phone qualifications serviceArea latitude longitude address isAvailable activeTaskCount")
+  .lean();
 
     if (allVolunteers.length === 0) {
       return NextResponse.json({

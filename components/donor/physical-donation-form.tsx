@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Package, Plus } from "lucide-react"
+import { Package } from "lucide-react"
 import type { DonationStatus, PhysicalDonation } from "@/lib/types"
 
 const statusColor: Record<DonationStatus, string> = {
@@ -31,11 +31,6 @@ const donationTypes = [
   "Clothing",
   "Food Supplies",
   "Books",
-  "Electronics",
-  "Furniture",
-  "Medical Supplies",
-  "Toys",
-  "Other",
 ]
 
 const conditionOptions = ["New", "Like New", "Used", "Needs Repair"]
@@ -145,12 +140,10 @@ export function PhysicalDonationForm() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" />
-              Submit Donation
+              
+              
             </CardTitle>
-            <CardDescription>
-              Fill in the details of items you want to donate
-            </CardDescription>
+           
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -266,24 +259,6 @@ export function PhysicalDonationForm() {
                   onChange={(e) => setForm({ ...form, preferredDate: e.target.value })}
                 />
               </div>
-
-              <div className="flex flex-col gap-2">
-                <Label>Time Slot</Label>
-                <Select
-                  value={form.timeSlot}
-                  onValueChange={(v) => setForm({ ...form, timeSlot: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time slot" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlotOptions.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* ── Donor Info ── */}
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-2">
                 Donor Info
