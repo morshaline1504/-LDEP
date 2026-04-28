@@ -302,14 +302,15 @@ t
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-##Future Enhancements
+## Future Enhancements
+
 While the platform successfully meets its current objectives, several enhancements are planned for future development:
 
- Mobile Application — Developing a dedicated Android and iOS mobile application using React Native to make the platform more accessible to donors and volunteers who primarily use smartphones.
- AI-Based Volunteer Matching — Integrating an AI recommendation engine that automatically matches the most suitable volunteer to a physical donation task based on location proximity, availability, and past performance ratings.
- Real-Time Chat Support — Adding an in-platform messaging system to allow direct communication between donors, volunteers, and administrators without relying solely on SMS and email notifications.
- Advanced Analytics Dashboard — Enhancing the admin dashboard with detailed data visualizations including donation trends, volunteer performance graphs, and geographic heatmaps of donation activity.
- Multi-Language Support — Adding Bengali language support to make the platform more accessible to a wider range of users across Bangladesh.
- Automated Fraud Detection — Implementing an AI-based fraud detection system that flags suspicious donation transactions or unusual platform activity for admin review.
- Donation Campaign Management — Allowing administrators to create and manage targeted donation campaigns with specific goals, deadlines, and progress tracking visible to all donors on the platform.
- Third-Party Blockchain Integration — Migrating from the current in-house blockchain implementation to a public blockchain network such as Ethereum for greater transparency, decentralization, and public verifiability of all donation transactions.
+- [ ] **Mobile Application** — Developing a dedicated Android and iOS mobile application using React Native to make the platform more accessible to donors and volunteers who primarily use smartphones.
+- [ ] **AI-Based Volunteer Matching** — Integrating an AI recommendation engine that automatically matches the most suitable volunteer to a physical donation task based on location proximity, availability, and past performance ratings.
+- [ ] **Real-Time Chat Support** — Adding an in-platform messaging system to allow direct communication between donors, volunteers, and administrators without relying solely on SMS and email notifications.
+- [ ] **Advanced Analytics Dashboard** — Enhancing the admin dashboard with detailed data visualizations including donation trends, volunteer performance graphs, and geographic heatmaps of donation activity.
+- [ ] **Multi-Language Support** — Adding Bengali language support to make the platform more accessible to a wider range of users across Bangladesh.
+- [ ] **Automated Fraud Detection** — Implementing an AI-based fraud detection system that flags suspicious donation transactions or unusual platform activity for admin review.
+- [ ] **Donation Campaign Management** — Allowing administrators to create and manage targeted donation campaigns with specific goals, deadlines, and progress tracking visible to all donors on the platform.
+- [ ] **Third-Party Blockchain Integration** — Migrating from the current in-house blockchain implementation to a public blockchain network such as Ethereum for greater transparency, decentralization, and public verifiability of all donation transactions.
