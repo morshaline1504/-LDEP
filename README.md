@@ -52,7 +52,6 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
 ### Frontend & Full-Stack Framework
 - **Next.js** — React framework with App Router, SSR, and built-in API routes
 - **React.js** — UI library
-- **TypeScript** — Type-safe JavaScript
 - **Tailwind CSS** — Utility-first CSS framework
 - **Radix UI** — Accessible component primitives
 
@@ -141,7 +140,7 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone <https://github.com/morshaline1504/-LDEP/edit/main/README.md>
    cd donatechain
    ```
 
@@ -152,25 +151,8 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
    npm install
    ```
 
-3. **Environment Setup**
 
-   Create a `.env.local` file in the root directory:
-   ```env
-   MONGODB_URI=mongodb://localhost:27017/donatechain
-   JWT_SECRET=your-jwt-secret-key
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   SSLCOMMERZ_STORE_ID=your-store-id
-   SSLCOMMERZ_STORE_PASS=your-store-password
-   ```
-
-4. **Start MongoDB**
-
-   Make sure MongoDB is running on your system:
-   ```bash
-   mongod
-   ```
-
-5. **Run the development server**
+3. **Run the development server**
 
    ```bash
    pnpm dev
@@ -180,7 +162,7 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
 
 6. **Access the application**
 
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Database Seeding
 
@@ -296,7 +278,7 @@ Monetary donations are recorded on a custom blockchain implementation:
 - `pnpm dev` — Start development server
 - `pnpm build` — Build for production
 - `pnpm start` — Start production server
-- `pnpm lint` — Run ESLint
+t
 
 ### Database Models
 
