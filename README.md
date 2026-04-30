@@ -11,22 +11,22 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
 ### Landing Page
 | Hero Section | Community & Contact |
 |---|---|
-| ![Landing Page Hero](https://github.com/user-attachments/assets/c49845f4-8ef3-499d-b0f2-a750f36615c8) | ![Landing Page Community](https://github.com/user-attachments/assets/2026a1e4-63cf-4135-865e-a99c31c15ab4) |
+| ![Landing Page Hero](https://github.com/user-attachments/assets/ce36aa02-7a6e-41f2-8ed4-58a0aea05e80) | ![Landing Page Community](https://github.com/user-attachments/assets/79bd462c-6296-4a0e-8234-b915538ee517) |
 
 ### Admin Dashboard
 | Task Management | Blockchain Verification |
 |---|---|
-| ![Admin Task Management](https://github.com/user-attachments/assets/2a32b085-c745-4e12-9ef7-0807f49e261d) | ![Admin Blockchain Verification](https://github.com/user-attachments/assets/bdb2b5ee-5a96-4670-a6bf-df01b85b1b86) |
+| ![Admin Task Management](https://github.com/user-attachments/assets/3db3e73b-6300-4a60-84f0-b3dd8fc20033) | ![Admin Blockchain Verification](https://github.com/user-attachments/assets/59e9df84-2543-4129-9023-ce4b26a090ab) |
 
 ### Donor Dashboard
 | Monetary Donation (SSLCommerz) | Physical Donation |
 |---|---|
-| ![Donor Monetary Donation](https://github.com/user-attachments/assets/972ca155-84c8-4589-a9de-ccdc699d3e40) | ![Donor Physical Donation](https://github.com/user-attachments/assets/24606753-7a1c-4f75-a4ca-5d93513f0a06) |
+| ![Donor Monetary Donation](https://github.com/user-attachments/assets/741e1910-ebcd-4ec8-928a-8ffd5b34af39) | ![Donor Physical Donation](https://github.com/user-attachments/assets/462c72bd-8a91-45f3-a89f-4235ddc9b351) |
 
 ### Volunteer Dashboard
 | My Tasks |
 |---|
-| ![Volunteer My Tasks](https://github.com/user-attachments/assets/ccfc7a88-286b-4378-a85c-6633eb18da5b) |
+| ![Volunteer My Tasks](https://github.com/user-attachments/assets/f42d820d-9791-490f-9150-02d664dfb994) |
 
 ---
 
@@ -140,7 +140,7 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
 
 1. **Clone the repository**
    ```bash
-   git clone <https://github.com/morshaline1504/-LDEP/edit/main/README.md>
+   git clone <https://github.com/morshaline1504/-LDEP>
    cd donatechain
    ```
 
@@ -151,7 +151,6 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
    npm install
    ```
 
-
 3. **Run the development server**
 
    ```bash
@@ -160,9 +159,9 @@ LDEP is a full-stack web application built with **Next.js** that connects donors
    npm run dev
    ```
 
-6. **Access the application**
+4. **Access the application**
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Database Seeding
 
@@ -278,7 +277,7 @@ Monetary donations are recorded on a custom blockchain implementation:
 - `pnpm dev` — Start development server
 - `pnpm build` — Build for production
 - `pnpm start` — Start production server
-t
+
 
 ### Database Models
 
@@ -290,13 +289,6 @@ t
 - **Notification** — User notifications
 - **ContactMessage** — User-to-admin messages
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## License
 
